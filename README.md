@@ -5,6 +5,11 @@ VASPで簡単に物性を計算するために作りました。
 もし、スパコンでされる方は$num_coreを指定するように書き換えてください。
 cshの部分はMITライセンスです。
 
+名前にautosetと付いたものはvaspで必要な入力ファイルを準備します。
+cshの中に記述していますので対応する部分を書き換えれば好きな入力の設定で計算できます。
+autosetと記述の付いたものはcshの中でなくても入力ファイルの修正が可能です。
+どちらが良いかは好みですが、とりあえずautosetと付いたものを使用してみてください。
+
 必要なものは、VASPとcsh, python, cif2cellです。その他には、phonopyとphono3py, boltztrapです。
 
 vasp2cif.pyはpythonです。この部分は他の方のものでApache License, Version 2.0です。
