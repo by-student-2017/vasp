@@ -10,6 +10,12 @@ cshの中に記述していますので対応する部分を書き換えれば�
 autosetと記述の付いたものはcshの中でなくても入力ファイルの修正が可能です。
 どちらが良いかは好みですが、とりあえずautosetと付いたものを使用してみてください。
 
-必要なものは、VASPとcsh, python, cif2cellです。その他には、phonopyとphono3py, boltztrapです。
+必要なものは、VASPとcsh, python, cif2cell, gnuplotです。
+
+その他には、phonopyとphono3py, boltztrapです。
+
+名称にbandと付いたものは動作未確認です。
+いまの私は計算をするための環境が非常に悪いのでこれ以上の作業があまり進んでいません。
+cshを読める人に書き直して貰いたいです。
 
 vasp2cif.pyはpythonです。この部分は他の方のものでApache License, Version 2.0に従ってください。
