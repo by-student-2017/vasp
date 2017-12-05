@@ -1,0 +1,1321 @@
+#! /bin/csh -f
+# VASP run command
+#
+# user settting
+#set vasp_adress = $HOME'/vasp/vasp.5.3/vasp'
+set vasp_adress = $HOME'/vasp/vasp.5.4.1/bin/vasp_std'
+set pseudo_potential_adress = $HOME'/vasp/potpaw_PBE'
+#set standard_input_adress = $HOME'/Desktop/Link to vasp_work/standard_input_files'
+#
+set __mpirun__ = "mpirun"
+#if you get libraries form Ubuntu Software center, I reccommend below,
+#set __mpirun__ = "mpirun.openmpi"
+#
+# check standard_input_files
+if ( -d standard_input_files ) then
+    echo "standard_input_files Exists, OK"
+    cd  standard_input_files
+    set standard_input_adress = `pwd`
+    cd ..
+else
+    echo "No such file"
+    echo "make standard_input_files directory"
+    mkdir standard_input_files
+    cd  standard_input_files
+    set standard_input_adress = `pwd`
+    #
+    #
+#---------- INCAR_opt_template start
+cat << EOF > INCAR_opt_template
+#NPAR
+
+#
+SYSTEM = system
+# Common
+ALGO = Fast
+EDIFF = 1.0E-5
+#EDIFF = 0.0001
+EDIFFG = -0.01
+LREAL = Auto
+LWAVE = .TRUE.
+#LCHARG = .TRUE
+#LVTOT = .TRUE
+#MAGMON = 0 0 1
+#NELM = 200
+#NPAR= 1
+PREC = Accurate
+#ISTART = 0
+
+# cut off energy, eV unit
+#ENCUT = 500
+
+#spin 2, nonspin 1
+#ISPIN = 2
+
+#XC potential
+GGA = PE
+
+#SCF
+#ISMEAR = -5
+#SIGMA = 0.2
+NSW = 100
+IBRION = 2
+ICHARG = 1
+LORBIT = 11
+
+#SCF OPTIMIZATION
+ISIF = 3
+
+#SCF energy range Ry
+#EINT -3 30
+
+# NBANDS, see OUTCAR, for HRplot
+#NBANDS = 580
+
+#DOS
+#ISMEAR = -5
+#NSW = 0
+#IBRION = -1
+#ICHARG = 11
+#LORBIT = 11
+
+#DOS range eV
+#EMIN = -15.0
+#EMAX = 15.0
+#NEDOS = 6001
+
+#EMIN = -10.0
+#EMAX = 17.0
+#NEDOS = 1001
+
+#band
+#ICHARG=11 #charge read file
+#ISMEAR = 0; SIGMA = 0.1;
+#LORBIT=11
+
+## HSE
+#LHFCALC = .TRUE. ; HFSCREEN = 0.2 ; AEXX = 0.25
+#ALGO = D ; TIME = 0.4 ; LDIAG = .TRUE.
+
+##VASP2WANNIER
+#LWANNIER90=.TRUE.
+EOF
+#---------- INCAR_opt_template end
+#
+#
+#---------- INCAR_scf_template start
+cat << EOF > INCAR_scf_template
+#NPAR
+
+#
+SYSTEM = system
+# Common
+ALGO = Fast
+EDIFF = 1.0E-5
+#EDIFF = 0.0001
+EDIFFG = -0.01
+LREAL = Auto
+LWAVE = .TRUE.
+#LCHARG = .TRUE
+#LVTOT = .TRUE
+#MAGMON = 0 0 1
+#NELM = 200
+#NPAR= 1
+PREC = Accurate
+#ISTART = 0
+
+# cut off energy
+ENCUT = 500
+
+#spin 2, nonspin 1
+#ISPIN = 2
+
+#XC potential
+GGA = PE
+
+#SCF
+ISMEAR = -5
+SIGMA = 0.2
+NSW = 100
+IBRION = 2
+ICHARG = 1
+LORBIT = 11
+
+#SCF OPTIMIZATION
+#ISIF = 3
+
+#SCF energy range Ry
+#EINT -3 30
+
+# NBANDS, see OUTCAR, for HRplot
+#NBANDS = 580
+
+#DOS
+#ISMEAR = -5
+#NSW = 0
+#IBRION = -1
+#ICHARG = 11
+#LORBIT = 11
+
+#DOS range eV
+#EMIN = -15.0
+#EMAX = 15.0
+#NEDOS = 6001
+
+#EMIN = -10.0
+#EMAX = 17.0
+#NEDOS = 1001
+
+#band
+#ICHARG=11 #charge read file
+#ISMEAR = 0; SIGMA = 0.1;
+#LORBIT=11
+
+## HSE
+#LHFCALC = .TRUE. ; HFSCREEN = 0.2 ; AEXX = 0.25
+#ALGO = D ; TIME = 0.4 ; LDIAG = .TRUE.
+
+##VASP2WANNIER
+#LWANNIER90=.TRUE.
+EOF
+#---------- INCAR_scf_template end
+#
+#
+#---------- INCAR_dos_template start
+cat << EOF > INCAR_dos_template
+#NPAR
+
+#
+SYSTEM = system
+# Common
+ALGO = Fast
+EDIFF = 1.0E-5
+#EDIFF = 0.0001
+EDIFFG = -0.01
+LREAL = Auto
+LWAVE = .TRUE.
+#LCHARG = .TRUE
+#LVTOT = .TRUE
+#MAGMON = 0 0 1
+#NELM = 200
+#NPAR= 1
+PREC = Accurate
+#ISTART = 0
+
+# cut off energy
+ENCUT = 500
+
+#spin 2, nonspin 1
+#ISPIN = 2
+
+#XC potential
+GGA = PE
+
+#SCF
+#ISMEAR = -5
+#SIGMA = 0.2
+#NSW = 100
+#IBRION = 2
+#ICHARG = 1
+#LORBIT = 11
+
+#SCF OPTIMIZATION
+#ISIF = 3
+
+#SCF energy range Ry
+#EINT -3 30
+
+# NBANDS, see OUTCAR, for HRplot
+NBANDS = #NB#
+
+#DOS
+ISMEAR = -5
+NSW = 0
+IBRION = -1
+ICHARG = 11
+LORBIT = 11
+
+#DOS range eV
+EMIN = #ELOW#
+EMAX = #EHIGH#
+NEDOS = 4500
+
+#band
+#ICHARG=11 #charge read file
+#ISMEAR = 0; SIGMA = 0.1;
+#LORBIT=11
+
+## HSE
+#LHFCALC = .TRUE. ; HFSCREEN = 0.2 ; AEXX = 0.25
+#ALGO = D ; TIME = 0.4 ; LDIAG = .TRUE.
+
+##VASP2WANNIER
+#LWANNIER90=.TRUE.
+EOF
+#---------- INCAR_dos_template end
+#
+#
+#---------- INCAR_band_template start
+cat << EOF > INCAR_band_template
+#NPAR
+
+#
+SYSTEM = system
+# Common
+ALGO = Fast
+EDIFF = 1.0E-5
+#EDIFF = 0.0001
+EDIFFG = -0.01
+LREAL = Auto
+LWAVE = .TRUE.
+#LCHARG = .TRUE
+#LVTOT = .TRUE
+#MAGMON = 0 0 1
+#NELM = 200
+#NPAR= 1
+PREC = Accurate
+#ISTART = 0
+
+# cut off energy
+ENCUT = 500
+
+#spin 2, nonspin 1
+#ISPIN = 2
+
+#XC potential
+GGA = PE
+
+#SCF
+#ISMEAR = -5
+#SIGMA = 0.2
+#NSW = 100
+#IBRION = 2
+#ICHARG = 1
+#LORBIT = 11
+
+#SCF OPTIMIZATION
+#ISIF = 3
+
+#SCF energy range Ry
+#EINT -3 30
+
+# NBANDS, see OUTCAR, for HRplot
+#NBANDS = 580
+
+#DOS
+#ISMEAR = -5
+#NSW = 0
+#IBRION = -1
+#ICHARG = 11
+#LORBIT = 11
+
+#DOS range eV
+#EMIN = -15.0
+#EMAX = 15.0
+#NEDOS = 6001
+
+#EMIN = -10.0
+#EMAX = 17.0
+#NEDOS = 1001
+
+#band
+ICHARG = 11 #charge read file
+ISMEAR = 0
+SIGMA = 0.1
+LORBIT = 11
+
+## HSE
+#LHFCALC = .TRUE. ; HFSCREEN = 0.2 ; AEXX = 0.25
+#ALGO = D ; TIME = 0.4 ; LDIAG = .TRUE.
+
+##VASP2WANNIER
+#LWANNIER90=.TRUE.
+EOF
+#---------- INCAR_band_template end
+#
+#
+#---------- KPOINTS template start
+#band plot
+#
+  #----- WIEN2k setting -----
+  # FCC, W - L - LAMBDA - G - DELTA - X - Z - W - K, Primitive Brillouin Zone (Please check result)
+cat << EOF > KPOINTS_fcc
+same line k point as WIEN2k_FCC.klist_band
+20 20 40 20 10
+L ! Line-mode
+r ! Reciprocal
+0.250 0.500 0.750 ! W
+0.500 0.500 0.500 ! L
+
+0.500 0.500 0.500 ! L
+0.000 0.000 0.000 ! GAMMA
+
+0.000 0.000 0.000 ! GAMMA
+0.000 0.500 0.500 ! X
+
+0.000 0.500 0.500 ! X
+0.250 0.500 0.750 ! W
+
+0.250 0.500 0.750 ! W
+0.375 0.375 0.750 ! K
+EOF
+  #
+  # BCC, G - DELTA - H - N - SIGMA - G - LAMBDA - P, Primitive Brillouin Zone (Please check result)
+cat << EOF > KPOINTS_bcc
+same line k point as WIEN2k_BCC.klist_band
+40 20 20 20
+L ! Line-mode
+r ! Reciprocal
+0.000 0.000 0.000 ! GAMMA
+-0.500 0.500 0.500 ! H
+
+-0.500 0.500 0.500 ! H
+0.000 0.000 0.500 ! N
+
+0.000 0.000 0.500 ! N
+0.000 0.000 0.000 ! GAMMA
+
+0.000 0.000 0.000 ! GAMMA
+0.250 0.250 0.250 ! P
+EOF
+  #
+  # HCP, G - SIGMA - M - K - LAMBDA - G - DELTA - A, Primitive Brillouin Zone (Please check result)
+cat << EOF > KPOINTS_hcp
+same line k point as WIEN2k_HCP.klist_band
+20 10 20 10
+L ! Line-mode
+r ! Reciprocal
+0.000 0.000 0.000 ! GAMMA
+0.500 0.000 0.000 ! M
+
+0.500 0.000 0.000 ! M
+0.333 0.333 0.000 ! K
+
+0.333 0.333 0.000 ! K
+0.000 0.000 0.000 ! GAMMA
+
+0.000 0.000 0.000 ! GAMMA
+0.000 0.000 0.500 ! A
+EOF
+  #
+  # SC, R - LAMBDA - G - DELTA - X - Z - M - SIGMA - G, Primitive Brillouin Zone (Please check result)
+cat << EOF > KPOINTS_sc
+same line k point as WIEN2k_SC.klist_band
+20 20 10 10
+L ! Line-mode
+r ! Reciprocal
+0.500 0.500 0.500 ! R
+0.000 0.000 0.000 ! GAMMA
+
+0.000 0.000 0.000 ! GAMMA
+0.500 0.000 0.000 ! X
+
+0.500 0.000 0.000 ! X
+0.500 0.000 0.500 ! M
+
+0.500 0.000 0.500 ! M
+0.500 0.000 0.000 ! GAMMA
+EOF
+  #----- WIEN2k setting -----
+#---------- KPOINTS template end
+    #
+    #
+#---------- vasp2cif start
+cat << EOF > vasp2cif
+#!/usr/bin/env python
+# ***********************************************************
+#   File: vasp2cif[.py]
+#   Description: a tool to make CIF format files out of
+#               VASP POSCAR+POTCAR/OUTCAR files.
+#               Output files acquire a .cif extension
+#               example: POSCAR --> POSCAR.cif
+#
+#   Copyright 2008-2013 Peter Larsson
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+#   Revision history:
+#      2013-07-14  Torbjorn Bjorkman
+#        - Runs Harold Stoke's FINDSYM program (if available)
+#          to determine the space group and standard setting.
+#      2012-12-15  Torbjorn Bjorkman
+#        - Extracts geometries also from OUTCAR files to a
+#          set of blocks in a single CIF file. Useful for
+#          visualization of a relaxation or MD run.
+#      2011-05-06  Torbjorn Bjorkman
+#        - You can now give many input POSCAR files and they
+#          will be generated as separate data blocks in the
+#          output CIF. Useful for visualization.
+#        - Support for cartesian coordinates also for non-
+#          orthorhombic systems.
+#      2010-01-08  Peter Larsson
+#        - Support for VASP 5 style CONTCAR files
+#      2009-09-29  Peter Larsson
+#        - More descriptive help for command line options
+#      2009-04-17  Peter Larsson
+#        - More robust error handling and support
+#          for Cartesian coordinates in orthorhombic cells
+#      2008-10-13  Peter Larsson
+#        - Ported to Python and added support for
+#          "Selective Dynamics" format in POSCAR and
+#          volume scaling
+#      2006-10-24  Peter Larsson
+#        - Original version in Ruby.
+# ***********************************************************
+
+import os
+import sys
+import commands
+import math
+import re
+from subprocess import Popen,call,PIPE
+from optparse import OptionParser
+
+# Input parser
+parser = OptionParser()
+parser.add_option("-v","--verbose",dest="verbose",help="Print CIF to stdout",action="store_true")
+parser.add_option("-o","--output",dest="output",help="Save CIF to named file",metavar="FILE")
+parser.add_option("-e","--elements",dest="elements",help="""Supply elements if no POTCAR is present. Example: --elements="Fe,Co,Ni" """,metavar="list of elements")
+parser.add_option("--findsym-tolerance",dest="findsymtol",help="""Tolerance used for FINDSYM (default=0, minimal value).""")
+parser.add_option("--no-findsym",dest="nofindsym",help="""Don't run FINDSYM to find symmetry of the crystal.""")
+(options,args) = parser.parse_args()
+
+####### FINDSYM ######
+# Check if FINDSYM is up and running
+global findsym
+global findsymtolerance
+full2shortHM = { '2/m 2/m 2/m' : 'mmm',
+         '4/m 2/m 2/m' : '4/mmm',
+         '-3 2/m' : '-3m',
+         '6/m 2/m 2/m' : '6/mmm',
+         '2/m -3' : 'm-3',
+         '4/m -3 2/m' : 'm-3m'}
+fullHMlist = ['4/m -3 2/m',
+          '2/m -3',
+          '6/m 2/m 2/m',
+          '-3 2/m',
+          '4/m 2/m 2/m',
+          '2/m 2/m 2/m']
+if options.findsymtol:
+    findsymtolerance = float(options.findsymtol)
+else:
+    findsymtolerance = 0
+try:
+    p=Popen(["findsym"],stdin=PIPE,stdout=PIPE)
+    p.stdin.write("blah\n0\n2\n1 1 1 90 90 90\n1\n1 0 0\n0 1 0\n0 0 1\n1\n1\n0 0 0")
+    output = p.communicate()[0]
+    if p.returncode != 0:
+        findsym = False
+    else:
+        # Check if it worked
+        if re.match("Error",output):
+            findsym = False
+        else:
+            # If we get here everything should be OK
+            findsym = True
+except:
+    findsym = False
+if options.nofindsym:
+    findsym = False
+
+# Classes
+class Cell:
+    def __init__(self):
+        label = ""
+        latticevectors = None
+        a = None
+        b = None
+        c = None
+        alpha = None
+        beta = None
+        gamma = None
+        HMSymbol = "'P 1'"
+        sites = [] # list of (elementname, x, y, z) tuples
+
+def ciffilestring(cell):
+    # Make CIF header with cell parameters and coord record info
+    outstring = ""
+    nofindsym = not findsym
+    if findsym:
+        # Construct FINDSYM input
+        findsymstring = " \n"
+        findsymstring += str(findsymtolerance)+"\n"
+#        findsymstring += "2\n"
+#        findsymstring += str(cell.a)+" "+str(cell.b)+" "+str(cell.c)+" "+str(cell.alpha)+" "+str(cell.beta)+" "+str(cell.gamma)+"\n"
+        findsymstring += "1\n"
+        findsymstring += str(cell.latticevectors[0][0])+" "+str(cell.latticevectors[0][1])+" "+str(cell.latticevectors[0][2])+"\n"
+        findsymstring += str(cell.latticevectors[1][0])+" "+str(cell.latticevectors[1][1])+" "+str(cell.latticevectors[1][2])+"\n"
+        findsymstring += str(cell.latticevectors[2][0])+" "+str(cell.latticevectors[2][1])+" "+str(cell.latticevectors[2][2])+"\n"
+        findsymstring += "1\n"
+        findsymstring += "1 0 0\n"
+        findsymstring += "0 1 0\n"
+        findsymstring += "0 0 1\n"
+        findsymstring += str(len(cell.sites))+"\n"
+        for a in cell.sites:
+            findsymstring += a[0]+" "
+        findsymstring += "\n"
+        for a in cell.sites:
+            findsymstring += "%1.15f   %1.15f   %1.15f\n"%(a[1],a[2],a[3])
+        # Call findsym with input and catch output
+        p=Popen(["findsym"],stdin=PIPE,stdout=PIPE)
+        p.stdin.write(findsymstring)
+        findsymoutput=p.communicate()[0]
+        findsymoutlines = findsymoutput.split("\n")
+        # Delete log
+        call(['rm','-f','findsym.log'])
+
+        # Check that FINDSYM returned a cif at the end
+        cifout = False
+        i = 0
+        for line in findsymoutlines:
+            i += 1
+            if re.match('_audit_creation_method',line):
+                cifout = True
+                break
+        if not cifout:
+            print "***Error: FINDSYM failed to produce a CIF file, no symmetrization done."
+            nofindsym = True
+
+    outstring += "data_" + cell.label.strip(" ")+"\n"
+    if nofindsym:
+        outstring += "_audit_creation_method   'vasp2cif'\n"
+    else:
+        outstring += "_audit_creation_method   'vasp2cif/FINDSYM'\n"
+        # Append FINDSYM cif to outstring.
+        for line in findsymoutlines[i:]:
+            # Convert to short version of H-M symbol.
+            if re.match('_symmetry_space_group_name_H-M',line):
+                tmp = line
+                for k in fullHMlist:
+                    if re.search(k,tmp):
+                        tmp = tmp.replace(k,full2shortHM[k])
+                outstring += tmp+"\n"
+            else:
+                outstring += line+"\n"
+
+    if nofindsym:
+        # Construct outstring
+        outstring += "_cell_length_a    " + str(cell.a)+"\n"
+        outstring += "_cell_length_b    " + str(cell.b)+"\n"
+        outstring += "_cell_length_c    " + str(cell.c)+"\n"
+        outstring += "_cell_angle_alpha    " + str(cell.alpha)+"\n"
+        outstring += "_cell_angle_beta    " + str(cell.beta)+"\n"
+        outstring += "_cell_angle_gamma    " + str(cell.gamma)+"\n"
+        outstring += "\n"
+        outstring += "_symmetry_space_group_name_H-M    "+cell.HMSymb+"\n"
+        outstring += "loop_\n"
+        outstring += "_atom_site_label\n"
+        outstring += "_atom_site_type_symbol\n"
+        outstring += "_atom_site_fract_x\n"
+        outstring += "_atom_site_fract_y\n"
+        outstring += "_atom_site_fract_z\n"
+        outstring += "_atom_site_occupancy\n"
+        i = 1
+        for a in cell.sites:
+            outstring += "%s%i   %s   %1.15f   %1.15f   %1.15f   1.0\n" % (a[0], i, a[0], a[1], a[2], a[3])
+            i += 1        
+        outstring += "\n\n"
+    return outstring
+
+def gstrip(s):
+    #Strip all whitespace in string s
+    return re.sub("\s+" , "", s)
+
+# Return OUTCAR or POSCAR depending on file type.
+# If not identified, return UNKNOWN
+def filetype(f):
+    filetype = "UNKNOWN"
+    # Something that should recognize an OUTCAR file
+    sym = re.compile("Analysis of symmetry for")
+    # POSCAR identified if line 2-5 can be interpreted as
+    # a length scale followed by three lattice vectors
+    lines = []
+    for i in range(6):
+        lines.append(f.readline())
+    try:
+        t = float(lines[1].split()[0])
+        for i in range(2,5):
+            t = [float(s) for s in lines[i].split()[:3]]
+        filetype = "POSCAR"
+    except:
+        for line in f:
+            if sym.match(line):
+                filetype = "OUTCAR"
+                break
+    f.seek(0) # Rewind file
+    return filetype
+    
+def mvmult3(mat,vec):
+    # matrix-vector multiplication
+    w = []
+    for i in range(3):
+        t = 0
+        for j in range(3):
+            t += mat[j][i]*vec[j]
+        w.append(t)
+    return w
+
+def det3(m):
+    # Determinant of 3x3 dimensional matrix
+    a = m[1][1]*m[2][2]-m[1][2]*m[2][1]
+    b = m[1][2]*m[2][0]-m[1][0]*m[2][2]
+    c = m[1][0]*m[2][1]-m[1][1]*m[2][0]
+    return m[0][0]*a + m[0][1]*b + m[0][2]*c
+
+def minv3(m):
+    # Inverse of 3x3 dimensional matrix
+    det = det3(m)
+    w = [[(m[1][1]*m[2][2]-m[1][2]*m[2][1])/det, (m[0][2]*m[2][1]-m[0][1]*m[2][2])/det, (m[0][1]*m[1][2]-m[0][2]*m[1][1])/det],
+         [(m[1][2]*m[2][0]-m[1][0]*m[2][2])/det, (m[0][0]*m[2][2]-m[0][2]*m[2][0])/det, (m[0][2]*m[1][0]-m[0][0]*m[1][2])/det],
+         [(m[1][0]*m[2][1]-m[1][1]*m[2][0])/det, (m[0][1]*m[2][0]-m[0][0]*m[2][1])/det, (m[0][0]*m[1][1]-m[0][1]*m[1][0])/det]]
+    return w
+
+
+#Let's get started, read input files.
+# Store in lists as (inputfile,filename) tuples.
+if len(args) == 0:
+    #Pipe mode, read and write to stdin and stdout
+    input_files = [(sys.stdin,None)]
+    cif_file = sys.stdout
+elif len(args) == 1:
+    #Write to input.cif
+    input_files = [(file(arg,'r'),arg) for arg in args]
+    if options.output:
+        cif_file = file(options.output,'w')
+    else:
+        cif_file = file(args[0] + ".cif",'w')
+else:
+    #Write to input.cif
+    input_files = [(file(arg,'r'),arg) for arg in args[0:]]
+    if options.output:
+        cif_file = file(options.output,'w')
+    else:
+        cif_file = file(args[0] + "_etc.cif",'w')
+
+# Initialize Cell object.
+cell = Cell()
+cell.HMSymb = "'P 1'"
+# loop over input files
+inputfilenr = 1
+cifblocknr = 1
+for input_file,filename in input_files:
+    if filetype(input_file) == "POSCAR":
+        poscar = input_file.readlines()
+
+        # CIF block number
+        cell.label = str(cifblocknr)
+
+        #We need to determine the data format, VASP 5 stores element names in line 5
+        if gstrip(poscar[5]).isdigit():
+            #Old school format
+            vasp5 = False
+            offset = 0
+        elif gstrip(poscar[5]).isalpha() and gstrip(poscar[6]).isdigit():
+            #Looks like vasp5 like format
+            vasp5 = True
+            offset = 1
+
+        #First deal with potential POTCAR problems
+        atoms = []
+        if options.elements:
+            #Read atoms from supplied string, eg "Li,Fe,Si,O"
+            atoms = options.elements.split(",")
+            assert(len(atoms) > 0)
+        else:        
+            if vasp5:
+                #Read elements from line 5
+                words = poscar[5].split()
+                atoms = [w.strip() for w in words]
+            else:
+                #Try to read atoms from POTCAR
+                if not os.path.exists("POTCAR"):
+                    sys.stderr.write("ERROR: Cannot find POTCAR. Please supply atom labels with the -e flag.\n")
+                    sys.exit(1)
+
+                potcar_lines = commands.getoutput("grep TITEL POTCAR").split("\n")
+                if len(potcar_lines) == 0:
+                    sys.stderr.write("ERROR: POTCAR file exists, but is empty? Supply atom labels with the -e flag.\n")
+                    sys.exit(1)
+
+                for line in potcar_lines:
+                    words = line.split()
+                    assert(words[0] == 'TITEL')
+
+                    #Note, we need the split _ to deal with names like "Li_sv"
+                    atoms.append(words[3].split("_")[0])
+
+        #Lattice scaling factor
+        lattice_constant = float(poscar[1].strip())
+
+        #Dealing with volume scaling in POSCAR
+        final_volume = -lattice_constant
+        scale_volume = False
+        if lattice_constant < 0.0:
+            lattice_constant = 1.0
+            scale_volume = True
+
+        #Read cell vectors
+        a = []
+        b = []
+        c = []
+        a.append(lattice_constant*float(poscar[2].split()[0].strip()))
+        a.append(lattice_constant*float(poscar[2].split()[1].strip()))
+        a.append(lattice_constant*float(poscar[2].split()[2].strip()))
+
+        b.append(lattice_constant*float(poscar[3].split()[0].strip()))
+        b.append(lattice_constant*float(poscar[3].split()[1].strip()))
+        b.append(lattice_constant*float(poscar[3].split()[2].strip()))
+
+        c.append(lattice_constant*float(poscar[4].split()[0].strip()))
+        c.append(lattice_constant*float(poscar[4].split()[1].strip()))
+        c.append(lattice_constant*float(poscar[4].split()[2].strip()))
+
+        unscaled_volume = a[0]*b[1]*c[2]-a[0]*b[2]*c[1]+a[1]*b[2]*c[0]-a[1]*b[0]*c[2]+a[2]*b[0]*c[1]-a[2]*b[1]*c[0]
+
+        if scale_volume:
+            lattice_constant = (final_volume/unscaled_volume)**(1.0/3.0)
+            a = map(lambda x: lattice_constant*x,a)
+            b = map(lambda x: lattice_constant*x,b)
+            c = map(lambda x: lattice_constant*x,c)
+            volume = a[0]*b[1]*c[2]-a[0]*b[2]*c[1]+a[1]*b[2]*c[0]-a[1]*b[0]*c[2]+a[2]*b[0]*c[1]-a[2]*b[1]*c[0]
+
+        cell.a = math.sqrt(a[0]*a[0]+a[1]*a[1]+a[2]*a[2])
+        cell.b = math.sqrt(b[0]*b[0]+b[1]*b[1]+b[2]*b[2])
+        cell.c = math.sqrt(c[0]*c[0]+c[1]*c[1]+c[2]*c[2])
+
+        cell.alpha = math.acos((b[0]*c[0]+b[1]*c[1]+b[2]*c[2])/(cell.b*cell.c))*180/math.pi
+        cell.beta = math.acos((a[0]*c[0]+a[1]*c[1]+a[2]*c[2])/(cell.a*cell.c))*180/math.pi
+        cell.gamma = math.acos((b[0]*a[0]+b[1]*a[1]+b[2]*a[2])/(cell.a*cell.b))*180/math.pi
+
+        cell.latticevectors = [a,b,c]
+
+        #Read atoms counts and make label array
+        atomlabels = []
+
+        atomcounts = poscar[5+offset].split()
+
+        if len(atomcounts) != len(atoms):
+            sys.stderr.write("ERROR: Not the same number of atom species in POTCAR and POSCAR. Please check.\n")
+            sys.exit(1)
+
+        n_atoms = 0
+        for i in range(0,len(atomcounts)):
+            n = int(atomcounts[i].strip())
+            n_atoms = n_atoms + n
+            for j in range(0,n):
+                atomlabels.append(atoms[i])
+
+        #Check for selective dynamics
+        if poscar[6+offset].upper()[0] == 'S':
+            offset = offset + 7
+        else:
+            offset = offset + 6
+
+        #Check for direct coordinates
+        direct_coordinates = True
+        if poscar[offset].upper()[0] == 'D':
+            direct_coordinates = True
+        if poscar[offset].upper()[0] == 'C':
+            direct_coordinates = False
+            lattice_vectors = [a,b,c]
+            inverse_lattice_vectors = minv3(lattice_vectors)
+
+        #Scan and print atomic positions from offset
+        if len(atomlabels) > (len(poscar)-offset):
+            sys.stderr.write(("WARNING: vasp2cif expected to find %d coordinates, but there are only %d coordinate lines in the file!\n") % (len(atomlabels),len(poscar)-offset))
+            atomlabels = atomlabels[0:len(poscar)-offset-1]
+
+        cell.sites = []
+        for i in range(0,len(atomlabels)):
+            #extract first three fields in POSCAR line
+            coords = map(float,poscar[i+offset+1].split()[0:3])
+
+            if not direct_coordinates:
+                coords = mvmult3(inverse_lattice_vectors, coords)
+
+            cell.sites.append((atomlabels[i],coords[0],coords[1],coords[2]))
+
+        # Print cell to cif files
+        cifstring = ciffilestring(cell)
+        cif_file.write(cifstring)
+        if options.verbose:
+            sys.stdout.write(cifstring)
+        # increment cif block counter
+        cifblocknr += 1
+    
+    elif filetype(input_file) == "OUTCAR":
+        # First find elements and how many of each.
+        atoms = []
+        titellines = commands.getoutput("grep TITEL "+filename).split("\n")
+        if len(titellines) == 0:
+            sys.stderr.write("ERROR: Cannot read elements. Damaged OUTCAR file?\n")
+            sys.exit(1)
+        for line in titellines:
+            words = line.split()
+            assert(words[0] == 'TITEL')
+            #Note, we need the split _ to deal with names like "Li_sv"
+            atoms.append(words[3].split("_")[0])
+        # How many of each?
+        natoms = [int(s) for s in commands.getoutput("grep 'ions per type =' "+filename).split()[4:]]
+        # Set up initial position array
+        i = 0
+        cell.sites = []
+        for a in atoms:
+            for j in range(natoms[i]):
+                cell.sites.append((a,0.0,0.0,0.0))
+            i += 1
+        # Precompiled regular expressions.
+        re_iter = re.compile("aborting loop because EDIFF is reached")
+        re_lattice = re.compile("direct lattice vectors")
+        re_positions = re.compile("POSITION")
+        latticevectors = []
+        introread = False
+        vectorsread = False
+        positionsread = False
+        vecline = 5
+        posline = sum(natoms)+1
+        linenr = 0
+        for line in input_file:
+            linenr += 1
+            # Start for lattices and positions after the end of first iteration.
+            if not introread:
+                if re_iter.search(line):
+                    introread = True
+                continue
+            # Get lattice vectors.
+            if re_lattice.search(line):
+                vecline = 1
+                latticevectors = []
+                continue
+            if vecline <= 3:
+                latticevectors.append([float(s) for s in line.split()[0:3]])
+            if vecline == 4:
+                # Lattice vectors read, set parameters
+                vectorsread = True
+                cell.latticevectors = latticevectors
+                inverse_lattice_vectors = minv3(latticevectors)
+                a,b,c = latticevectors[0],latticevectors[1],latticevectors[2]
+                # crystallographic parameters
+                cell.a = math.sqrt(a[0]*a[0]+a[1]*a[1]+a[2]*a[2])
+                cell.b = math.sqrt(b[0]*b[0]+b[1]*b[1]+b[2]*b[2])
+                cell.c = math.sqrt(c[0]*c[0]+c[1]*c[1]+c[2]*c[2])
+
+                cell.alpha = math.acos((b[0]*c[0]+b[1]*c[1]+b[2]*c[2])/(cell.b*cell.c))*180/math.pi
+                cell.beta = math.acos((a[0]*c[0]+a[1]*c[1]+a[2]*c[2])/(cell.a*cell.c))*180/math.pi
+                cell.gamma = math.acos((b[0]*a[0]+b[1]*a[1]+b[2]*a[2])/(cell.a*cell.b))*180/math.pi
+                
+            # Read positions
+            if re_positions.search(line):
+                posline = -2
+            if 0 <= posline < sum(natoms):
+                c = [float(p) for p in line.split()[0:3]]
+                c = mvmult3(inverse_lattice_vectors, c)
+                cell.sites[posline] = (cell.sites[posline][0],c[0],c[1],c[2])
+            if posline == sum(natoms) and introread:
+                # Positions read, now print cell.
+                cell.label = str(cifblocknr)
+                cifstring = ciffilestring(cell)
+                cif_file.write(cifstring)
+                if options.verbose:
+                    sys.stdout.write(cifstring)
+                # increment cif block counter
+                cifblocknr += 1
+            posline += 1
+            vecline += 1
+    else:
+        sys.stderr.write("ERROR: Format of file %i not recognized.\n"%inputfilenr)
+        sys.exit(1)
+    # increment input file counter
+    inputfilenr += 1
+
+EOF
+#---------- vasp2cifend
+    #
+    #
+    chmod +x vasp2cif
+    cd ..
+endif
+#
+# Automatically setting
+setenv OMP_NUM_THREADS 1
+set node = `grep 'physical id' /proc/cpuinfo | sort -u | wc -l`
+set num_core = `grep 'core id' /proc/cpuinfo | sort -u | wc -l`
+echo ""
+set DATE = `date`
+echo $DATE
+echo "Automatically setting environments"
+echo "------------------------------------------------------------"
+echo "OpenMP threads = 1"
+echo "automatic setting Parallel calculation (MPI) = "$num_core" core"" / ""$node"" node"
+set NPAR = `echo 4-"sqrt($num_core)" | bc`
+echo "automatic setting NPAR = "$NPAR
+sed 's/#NPAR/NPAR = '${NPAR}'/g' "${standard_input_adress}/INCAR_opt_template" > "${standard_input_adress}/INCAR_opt"
+sed 's/#NPAR/NPAR = '${NPAR}'/g' "${standard_input_adress}/INCAR_scf_template" > "${standard_input_adress}/INCAR_scf"
+sed 's/#NPAR/NPAR = '${NPAR}'/g' "${standard_input_adress}/INCAR_dos_template" > "${standard_input_adress}/INCAR_dos"
+sed 's/#NPAR/NPAR = '${NPAR}'/g' "${standard_input_adress}/INCAR_band_template" > "${standard_input_adress}/INCAR_band"
+echo "------------------------------------------------------------"
+echo $vasp_adress
+echo $pseudo_potential_adress
+echo $standard_input_adress
+echo "------------------------------------------------------------"
+#
+set address = `pwd`
+echo "$address"
+echo "$address" >> "$address/log"
+set DATE = `date`
+echo "start: "$DATE > "$address/log"
+#
+set cif_list=`ls *.cif`
+foreach cif_name ( $cif_list )
+  # remove extension
+  set cif_folder_name = `echo $cif_name:r`
+  mkdir ${cif_folder_name}
+  cp "$address/$cif_name" "$address/${cif_folder_name}/$cif_name"
+end
+#
+echo "include"
+set list=`find . -maxdepth 1 -mindepth 1 -type d | awk -F/ '{print $NF}'`
+echo $list
+echo "folder list: "$list >> "$address/log"
+echo "------------------------------------------------------------"
+#
+if ( -d graph ) then
+    echo "graph directory Exists, OK"
+else
+    echo "No such file"
+    echo "make graph directory"
+    mkdir graph
+endif
+#
+if ( -d cif ) then
+    echo "cif directory Exists, OK"
+else
+    echo "No such file"
+    echo "make cif directory"
+    mkdir cif
+endif
+#
+if ( -d data ) then
+    echo "data directory Exists, OK"
+    echo "extract data from data directory"
+    if ( -f "$address/data/compound_total_energy.txt" ) then
+      cp "$address/data/compound_total_energy.txt" "$address/compound_total_energy.txt"
+    endif
+    if ( -f "$address/data/atom_total_energy.txt" ) then
+      cp "$address/data/atom_total_energy.txt" "$address/atom_total_energy.txt"
+    endif
+    if ( -f "$address/data/compound_num.txt" ) then
+      cp "$address/data/compound_num.txt" "$address/compound_num.txt"
+    endif
+    if ( $1 == "-n" ) then
+      echo "new formation energy file"
+      rm -f  "$address/data/compound_num.txt"
+      rm -f  "$address/data/compound_total_energy.txt"
+      rm -f  "$address/data/formation_energy.txt"
+      rm -f  "$address/compound_num.txt"
+      rm -f  "$address/compound_total_energy.txt"
+      rm -f  "$address/formation_energy.txt"
+    endif
+else
+    echo "No such file"
+    echo "make data directory"
+    mkdir data
+endif
+#
+echo `date` > fermi_energy.txt
+echo `date` > total_energy.txt
+set compound_no = 0
+#
+foreach folder_name_list ( $cif_list )
+  set folder_name = `echo $folder_name_list:r`
+  echo "--------------------" >> "$address/log"
+  set DATE = `date`
+  echo $DATE >> "$address/log"
+  #
+  echo ""
+  echo "vasp calculation start: ""$folder_name"
+  echo ""
+  date
+  #
+  cd "$address/$folder_name"
+  echo "folder name: "$folder_name >> "$address/log"
+  echo "absolute adress: "`pwd` >> "$address/log"
+  #
+  echo "run cif2cell"
+  cif2cell -p vasp --setup-all --vasp-format=5 --vasp-encutfac=1.0 --vasp-pseudo-libdr="${pseudo_potential_adress}" --vasp-cartesian-lattice-vectors -f *.cif
+  #
+  echo "set standard input files"
+  #cp "${standard_input_adress}/KPOINTS" KPOINTS
+  cp "${standard_input_adress}/INCAR_opt"   INCAR_opt
+  cp "${standard_input_adress}/INCAR_scf"   INCAR_scf
+  cp "${standard_input_adress}/INCAR_dos"   INCAR_dos
+  cp "${standard_input_adress}/INCAR_band"  INCAR_band
+  cp "${standard_input_adress}/KPOINTS_fcc" KPOINTS_fcc
+  cp "${standard_input_adress}/KPOINTS_bcc" KPOINTS_bcc
+  cp "${standard_input_adress}/KPOINTS_hcp" KPOINTS_hcp
+  cp "${standard_input_adress}/KPOINTS_sc"  KPOINTS_sc
+  #cp "${standard_input_adress}/gplot" "$address/data/gplot"
+  #cp "${standard_input_adress}/fenergy" "$address/data/fenergy"
+  #chmod +x "$address/data/gplot"
+  #chmod +x "$address/data/fenergy"
+  # structure optimization
+  set DATE = `date`
+  echo "optimize structure calculation"
+  echo "optimize structure calculation: "$DATE >> "$address/log"
+  # run opt calculation
+  cp INCAR_opt INCAR
+  ${__mpirun__} -np $num_core $vasp_adress
+  cp OUTCAR OUTCAR_opt
+  cp INCAR INCAR_opt
+  rm -f *.cif
+  "$standard_input_adress/vasp2cif" CONTCAR
+  mv CONTCAR.cif "$folder_name.cif"
+  rm -f CONTCAR.cif
+  cif2cell -p vasp --setup-all --vasp-format=5 --vasp-encutfac=1.0 --vasp-pseudo-libdr="${pseudo_potential_adress}" --vasp-cartesian-lattice-vectors -f *.cif
+  mv INCAR INCAR_cif2cell
+  #
+  # scf calculation (use optimized structure)
+  date
+  set DATE = `date`
+  echo "scf calculation"
+  echo "scf calculation: "$DATE >> "$address/log"
+  cp "$address/$folder_name/KPOINTS" "$address/$folder_name/KPOINTS_scf" # stalbe setting
+  #sed -e 's/Gamma/Monkhorst-pack/g' KPOINTS > KPOINTS_scf
+  mv KPOINTS KPOINTS_dos
+  # Automatically k-point setting
+  # k-space resolution ~0.1/A
+  sed -n 4p KPOINTS_dos > KPOINTS_num_02A
+  awk '{print $1}' KPOINTS_num_02A > kx_num_temp
+  @ kx_num_temp += 0
+  if(${kx_num_temp} >= 14)then
+    set dos_k_mesh_times = 1
+  else
+    set dos_k_mesh_times = 2
+  endif
+  set dos_k_mesh_times = 1 # stable setting
+  rm -f kx_num_temp
+  echo "n="${dos_k_mesh_times}
+  awk -v n="${dos_k_mesh_times}" '{print $1*n, $2*n, $3*n}' KPOINTS_num_02A > KPOINTS_num_01A
+  #echo "automatic mesh, k-space resolution ~0.1/A" > KPOINTS_dos
+  echo "automatic mesh, k-space resolution ~0.2/A" > KPOINTS_dos # stalbe setting
+  echo "0" >> KPOINTS_dos
+  #echo "Monkhorst-pack" >> KPOINTS_dos
+  echo "Gamma" >> KPOINTS_dos  # stalbe setting
+  cat KPOINTS_num_01A >> KPOINTS_dos
+  echo "0 0 0" >> KPOINTS_dos
+  rm -f KPOINTS_num_02A
+  rm -f KPOINTS_num_01A
+  #
+  cp INCAR_scf INCAR
+  cp KPOINTS_scf KPOINTS
+  # clean opt files
+  rm -f str
+  #rm -f CHG
+  #rm -f CHGCAR
+  #rm -f IBZKPT
+  #rm -f PROCAR
+  #rm -f XDATCAR
+  #rm -f WAVECAR
+  #rm -f vasprun.xml
+  #rm -f REPORT
+  #rm -f EIGENVAL
+  # run scf calculation
+  ${__mpirun__} -np $num_core $vasp_adress
+  cp OUTCAR OUTCAR_scf
+  mv KPOINTS KPOINTS_scf
+  # dos calculation
+  date
+  set DATE = `date`
+  echo "dos calculation"
+  echo "dos calculation: "$DATE >> "$address/log"
+  cp KPOINTS_dos KPOINTS
+  # setting automatically dos calculation range
+  grep "Fermi energy:" OUTCAR | tail -1 > fermi_temp1
+  awk '{print $4}' fermi_temp1 > fermi_energy_temp1
+  sed -e 's/;.*//g' fermi_energy_temp1 > fermi_energy_temp2
+  set fermi_energy = `sed -n 1p fermi_energy_temp2`
+  set energy_min = `echo "${fermi_energy} - 13.0" | bc -l`
+  set energy_max = `echo "${fermi_energy} + 6.0" | bc -l`
+  cp INCAR_dos INCAR_dos_temp
+  sed -e 's/#ELOW#/'${energy_min}'/g' -e 's/#EHIGH#/'${energy_max}'/g' INCAR_dos_temp > INCAR_dos
+  rm -f fermi_temp1
+  rm -f fermi_energy_temp1
+  rm -f fermi_energy_temp2
+  rm -f fermi_energy
+  rm -f INCAR_dos_temp
+  #
+  grep "#NBANDS" INCAR_cif2cell > nband_temp1
+  #set nband_temp2 = `awk '{print int($3*1.2)}' nband_temp1`
+  set nband_temp2 = `awk '{print int($3*1)}' nband_temp1` # stable setting
+  cp INCAR_dos INCAR_dos_temp
+  sed -e 's/#NB#/'${nband_temp2}'/g' INCAR_dos_temp > INCAR_dos
+  rm -f nband_temp1
+  rm -f nband_temp2
+  rm -f INCAR_dos_temp
+  #
+  cp INCAR_dos INCAR
+  # run dos calculation
+  ${__mpirun__} -np $num_core $vasp_adress
+  cp OUTCAR OUTCAR_dos
+  date
+  # data file
+  grep "Fermi energy:" OUTCAR | tail -1 >> "$address/log"
+  grep "TOTEN" OUTCAR | tail -1 >> "$address/log"
+  # new file
+  echo "folder name: " "$folder_name" >> "$address/fermi_energy.txt"
+  grep "Fermi energy:" OUTCAR | tail -1 >> "$address/fermi_energy.txt"
+  echo "$folder_name" >> "$address/total_energy.txt"
+  grep "TOTEN" OUTCAR | tail -1 >> "$address/total_energy.txt"
+  # formation energy data
+  set atom_chara = `awk 'NR==6 {print $1}' POSCAR`
+  set check_single = `awk 'NR==6 {print $2}' POSCAR`
+  if(${check_single} == "")then
+    echo $atom_chara >> "$address/atom_total_energy.txt"
+    sed -n 7p POSCAR >> "$address/atom_total_energy.txt"
+    grep "TOTEN" OUTCAR | tail -1 >> "$address/atom_total_energy.txt"
+  else
+    @ compound_no += 1
+    echo "${compound_no}"
+    echo "${compound_no}" > "$address/compound_num.txt"
+    #echo ${compound_no} >> "$address/compound_total_energy.txt"
+    echo "$folder_name" >> "$address/compound_total_energy.txt"
+    sed -n 6p POSCAR >> "$address/compound_total_energy.txt"
+    sed -n 7p POSCAR >> "$address/compound_total_energy.txt"
+    grep "TOTEN" OUTCAR | tail -1 >> "$address/compound_total_energy.txt"
+  endif
+  # calculating file
+  echo "folder name: " "$folder_name" >> "$address/$folder_name/log"
+  grep "Fermi energy:" OUTCAR | tail -1 >> "$address/$folder_name/log"
+  echo "$folder_name" >> "$address/$folder_name/log"
+  grep "TOTEN" OUTCAR | tail -1 >> "$address/$folder_name/log"
+  # dos plot data
+  set DATE = `date`
+  echo "dos plot: "$DATE >> $address/log
+  sed -n 6p DOSCAR > dos_num_line
+  awk '{print $3}' dos_num_line > dos_num
+  set end_line = `sed -n 1p dos_num`
+  @ end_line += 6
+  sed -n 7,${end_line}p DOSCAR > tdos_temp
+  awk '{print $4}' dos_num_line > fermi_temp
+  set fermi_energy = `sed -n 1p fermi_temp`
+  echo "${fermi_energy}"
+  awk -v p="${fermi_energy}" '{print $1-p,$2,$3}' tdos_temp > tdos
+  awk -v p="${fermi_energy}" '{print $1-p,$2,$3}' tdos_temp > "tdos_$folder_name"
+  cp "tdos_$folder_name" "$address/graph/tdos_$folder_name"
+  rm -f dos_num_line
+  rm -f dos_num
+  rm -f tdos_temp
+  rm -f fermi_temp
+  echo "$folder_name" >> "$address/$folder_name/title"
+  # dos plot
+  #"$standard_input_adress/gplot"
+  #
+  #
+  #----------gplot start
+set tempfile = `sed -n 1p title`
+set filename  = $tempfile
+set psformat  = $filename".ps"
+set epsformat = $filename".eps"
+
+gnuplot -persist << EOF
+
+set title "$filename"
+set size 0.7,1.0
+set xr[-12.0:6.0]
+set xl "{/=30 Energy  / eV}"
+set yr[0.0:*]
+set yl "{/=30 Density of States / eV}"
+
+set yzeroaxis lt 2 lw 2 lc rgb "black"
+
+# linetype=lt, linecolor=lc, linewidth=lw, pointtype=pt, pointsize=ps
+# with=w, line=l, color setting=lc rgb "",
+set key box center top
+
+# dos_updn
+#plot "dos_updn" using 1:2 w l lt 1 lw 2 lc rgb "black" title "{/=30 up spin}", "dos_updn" using 1:3 w l lt 1 lw 2 lc rgb "black" title "{/=30 down spin}"
+
+# tdos
+plot "tdos" using 1:2 w l lt 1 lw 2 lc rgb "black" title "{/=30 total}"
+
+unset key
+#set key left top
+
+set size 1.0,1.0
+set terminal postscript color enhanced "Arial" 30
+set out "$psformat"
+replot
+
+#set size 1.5,2.1
+#set terminal postscript eps color enhanced "Arial" 30
+#set out "$epsformat"
+#replot
+
+set terminal x11
+
+EOF
+  #----------gplot end
+  #
+  #
+  cp *.ps "$address/graph/${folder_name}.ps"
+  #
+  # run band calculation
+  # get symmetry data
+  sed -n -e '/space_group_name_H-M/p' "$address/$folder_name.cif" > out.txt
+  awk '{print $2}' out.txt > out2.txt
+  cut -c 2 out2.txt > bravais_lattice.txt
+  rm -f -r out.txt
+  rm -f -r out2.txt
+  #
+  # exchange band path file
+  set bravais = `awk '{print $1}' bravais_lattice.txt`
+  echo "bravais lattice:" ${bravais}
+  switch( ${bravais} )
+    case F :
+      echo "set fcc band path"
+      cp KPOINTS_fcc KPOINTS
+      breaksw
+    case B :
+      echo "set bcc band path"
+      cp KPOINTS_bcc KPOINTS
+      breaksw
+    case H :
+      echo "set hcp band path"
+      cp KPOINTS_hcp KPOINTS
+      breaksw
+    default :
+      echo "set simple cubic band path"
+      cp KPOINTS_sc KPOINTS
+  endsw
+  #
+  cp INCAR_band INCAR
+  ${__mpirun__} -np $num_core $vasp_adress
+  cp OUTCAR OUTCAR_band
+  date
+#
+  mv "$address/$folder_name.cif" "$address/cif/$folder_name.cif"
+  rm -f title
+#
+end
+cd "$address"
+# formation energy
+#echo "formation energy calculation"
+#"$standard_input_adress/fenergy"
+# back up
+mv "$address/compound_total_energy.txt" "$address/data/compound_total_energy.txt"
+mv "$address/atom_total_energy.txt" "$address/data/atom_total_energy.txt"
+mv "$address/compound_num.txt" "$address/data/compound_num.txt"
+mv "$address/fermi_energy.txt" "$address/data/fermi_energy.txt"
+mv "$address/total_energy.txt" "$address/data/total_energy.txt"
+#cp "$address/formation_energy.txt" "$address/data/formation_energy.txt"
+#
