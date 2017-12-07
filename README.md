@@ -10,7 +10,7 @@ cshの中に記述していますので対応する部分を書き換えれば�
 autosetと記述の付いたものはcshの中でなくても入力ファイルの修正が可能です。
 どちらが良いかは好みですが、とりあえずautosetと付いたものを使用してみてください。
 
-必要なものは、VASPとcsh, python, cif2cell, gnuplotです。
+必要なものは、VASPとOpenMPI, csh, python, cif2cell, gnuplotです。
 
 その他には、phonopyとphono3py, boltztrapです。
 
